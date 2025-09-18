@@ -7,7 +7,12 @@ app = Flask(__name__)
 app.secret_key = "supersegreto"
 
 # Configurazione DB PostgreSQL (Render fornisce DATABASE_URL come variabile ambiente)
-db_url = os.environ.get("postgresql://classifica_db_wvsr_user:v9jLfLU5G250x6J5q0nqdkFcExvkT1Fm@dpg-d35ua6odl3ps73997h8g-a.frankfurt-postgres.render.com/classifica_db_wvsr")
+import os
+
+db_url = os.environ.get("DATABASE_URL")
+if db_url and db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgres://", 1)
+
 if not db_url:
     raise RuntimeError("❌ DATABASE_URL non impostata. Vai su Render e aggiungi la variabile ambiente.")
 
