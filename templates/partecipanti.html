@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Partecipanti{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">📝 Partecipanti</h2>
+
+<form method="post" class="row g-3 mb-4">
+  <div class="col-md-3">
+    <input type="text" class="form-control" name="nome" placeholder="Nome partecipante" required>
+  </div>
+  <div class="col-md-3">
+    <input type="date" class="form-control" name="data_nascita">
+  </div>
+  <div class="col-md-2">
+    <input type="text" class="form-control" name="paese" placeholder="Paese">
+  </div>
+  <div class="col-md-2">
+    <input type="text" class="form-control" name="provincia" placeholder="Provincia">
+  </div>
+  <div class="col-md-2">
+    <select class="form-select" name="squadra_id" required>
+      <option value="">Seleziona squadra</option>
+      {% for s in squadre %}
+      <option value="{{ s.id }}">{{ s.nome }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">➕ Aggiungi Partecipante</button>
+  </div>
+</form>
+
+<table class="table table-striped table-bordered align-middle shadow-sm">
+  <thead class="table-primary">
+    <tr>
+      <th>Nome</th>
+      <th>Data di nascita</th>
+      <th>Paese</th>
+      <th>Provincia</th>
+      <th>Squadra</th>
+      <th>Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in partecipanti %}
+    <tr>
+      <td class="fw-bold">{{ p.nome }}</td>
+      <td>{{ p.data_nascita if p.data_nascita else "-" }}</td>
+      <td>{{ p.paese or "-" }}</td>
+      <td>{{ p.provincia or "-" }}</td>
+      <td>{{ p.squadra.nome }}</td>
+      <td>
+        <form action="{{ url_for('delete_partecipante', pid=p.id) }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-sm btn-danger"
+                  onclick="return confirm('Sei sicuro di voler eliminare questo partecipante?');">🗑️ Elimina</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
+

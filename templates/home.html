@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<div class="text-center mb-4">
+  <h2 class="fw-bold">🐎 Dove si Va 2025 🐎</h2>
+</div>
+
+<div class="row">
+  <div class="col-md-6 mb-4">
+    <h4 class="mb-3">🏆 Classifica Generale</h4>
+    <table class="table table-striped table-bordered text-center align-middle shadow-sm">
+      <thead class="table-primary">
+        <tr>
+          <th>Posizione</th>
+          <th>Squadra</th>
+          <th>Punti</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s, punti in totali %}
+        <tr {% if loop.index == 1 %}class="table-success"{% endif %}>
+          <td>{{ loop.index }}</td>
+          <td class="fw-bold">{{ s.nome }}</td>
+          <td>{{ punti|round(2) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if not totali %}
+    <div class="alert alert-warning text-center">⚠️ Nessuna squadra inserita</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-6 mb-4">
+    <h4 class="mb-3">📊 Statistiche</h4>
+    <ul class="list-group shadow-sm">
+      <li class="list-group-item">
+        👶 Più giovane:
+        {% if piu_giovane %}<strong>{{ piu_giovane.nome }}</strong> ({{ piu_giovane.squadra.nome }})
+        {% else %}-{% endif %}
+      </li>
+      <li class="list-group-item">
+        🧓 Più vecchio:
+        {% if piu_vecchio %}<strong>{{ piu_vecchio.nome }}</strong> ({{ piu_vecchio.squadra.nome }})
+        {% else %}-{% endif %}
+      </li>
+      <li class="list-group-item">
+        🌍 Più lontano da {{ ref }}:
+        {% if piu_lontano %}<strong>{{ piu_lontano.nome }}</strong> ({{ piu_lontano.paese }}, {{ piu_lontano.provincia }}) — {{ '%.1f'|format(distanza) }} km
+        {% else %}-{% endif %}
+      </li>
+    </ul>
+  </div>
+</div>
+
+{% endblock %}
+

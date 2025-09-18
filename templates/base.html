@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}🐎 Dove si Va 2025 🐎{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Stile personalizzato -->
+  <style>
+    body {
+      background-color: #92e8f1; /* azzurro chiaro */
+    }
+    .navbar-custom {
+      background-color: #0c5283; /* azzurro scuro */
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="{{ url_for('home') }}">Dove si Va 2025</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint=='home' %}active{% endif %}" href="{{ url_for('home') }}">🏠 Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint=='giochi' %}active{% endif %}" href="{{ url_for('giochi') }}">🎲 Giochi</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint=='squadre' %}active{% endif %}" href="{{ url_for('squadre') }}">👥 Squadre</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint=='partecipanti' %}active{% endif %}" href="{{ url_for('partecipanti') }}">📝 Partecipanti</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint=='classifica' %}active{% endif %}" href="{{ url_for('classifica') }}">🏆 Classifica</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint=='statistiche' %}active{% endif %}" href="{{ url_for('statistiche') }}">📊 Statistiche</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="container my-4">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ 'success' if cat=='success' else 'danger' }} alert-dismissible fade show" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<footer class="text-center text-muted py-3 mt-4 border-top bg-white">
+  <small>© 2025 Dove si Va – Classifiche Live</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

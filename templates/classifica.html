@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Classifica Generale{% endblock %}
+{% block content %}
+<h2 class="mb-4">🏆 Classifica Generale</h2>
+
+<table class="table table-striped table-bordered text-center align-middle shadow-sm">
+  <thead class="table-primary">
+    <tr>
+      <th style="width:10%">Posizione</th>
+      <th>Squadra</th>
+      <th style="width:20%">Punti</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s, punti in totali %}
+    <tr {% if loop.index == 1 %}class="table-success"{% endif %}>
+      <td><strong>{{ loop.index }}</strong></td>
+      <td class="fw-bold">{{ s.nome }}</td>
+      <td><span class="badge bg-primary fs-6">{{ punti|round(2) }}</span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not totali %}
+<div class="alert alert-warning text-center">⚠️ Nessuna squadra inserita</div>
+{% endif %}
+{% endblock %}
+

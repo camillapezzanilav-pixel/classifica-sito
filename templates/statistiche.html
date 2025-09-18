@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Statistiche{% endblock %}
+{% block content %}
+<h2 class="mb-4">📊 Statistiche</h2>
+
+<div class="card mb-3 shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title">👶 Più giovane</h5>
+    {% if piu_giovane %}
+      <p><strong>{{ piu_giovane.nome }}</strong> ({{ piu_giovane.squadra.nome }})<br>
+      Nato il {{ piu_giovane.data_nascita.strftime('%d/%m/%Y') if piu_giovane.data_nascita else '-' }}</p>
+    {% else %}
+      <p>-</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-3 shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title">🧓 Più vecchio</h5>
+    {% if piu_vecchio %}
+      <p><strong>{{ piu_vecchio.nome }}</strong> ({{ piu_vecchio.squadra.nome }})<br>
+      Nato il {{ piu_vecchio.data_nascita.strftime('%d/%m/%Y') if piu_vecchio.data_nascita else '-' }}</p>
+    {% else %}
+      <p>-</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-3 shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title">🌍 Più lontano da {{ ref }}</h5>
+    {% if piu_lontano %}
+      <p><strong>{{ piu_lontano.nome }}</strong> ({{ piu_lontano.squadra.nome }})<br>
+      {{ piu_lontano.paese or '-' }} ({{ piu_lontano.provincia or '-' }})<br>
+      Distanza: {{ '%.1f'|format(distanza) }} km</p>
+    {% else %}
+      <p>-</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
