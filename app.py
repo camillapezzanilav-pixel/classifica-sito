@@ -6,15 +6,16 @@ import os
 app = Flask(__name__)
 app.secret_key = "supersegreto"
 
+import os 
 # Configurazione DB PostgreSQL (Render fornisce DATABASE_URL come variabile ambiente)
-import os
-
 db_url = os.environ.get("DATABASE_URL")
-if db_url and db_url.startswith("postgresql://"):
-    db_url = db_url.replace("postgresql://", "postgres://", 1)
+
+# Fix per compatibilità: Render a volte dà postgres:// ma SQLAlchemy vuole postgresql://
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
 
 if not db_url:
-    raise RuntimeError("❌ DATABASE_URL non impostata. Vai su Render e aggiungi la variabile ambiente.")
+    raise RuntimeError("❌ DATABASE_URL non impostata.")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
