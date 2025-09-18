@@ -20,8 +20,15 @@
         {% for s in squadre %}
         <tr>
           <td>{{ s.nome }}</td>
-          <td style="max-width:120px;">
-            <input type="text" name="punti_{{ s.id }}" value="{{ punteggi.get(s.id, '') }}" class="form-control">
+          <td style="max-width:160px;">
+            <div class="d-flex align-items-center">
+              <input type="text" name="punti_{{ s.id }}" value="{{ punteggi.get(s.id, '') }}" class="form-control me-2">
+              {% for p in gioco.punteggi if p.squadra_id == s.id %}
+              <form action="{{ url_for('delete_punteggio', gid=gioco.id, pid=p.id) }}" method="post">
+                <button type="submit" class="btn btn-outline-danger btn-sm">🗑</button>
+              </form>
+              {% endfor %}
+            </div>
           </td>
         </tr>
         {% endfor %}

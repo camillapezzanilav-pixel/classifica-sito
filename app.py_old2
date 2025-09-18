@@ -7,7 +7,7 @@ from math import radians, sin, cos, sqrt, atan2
 app = Flask(__name__)
 app.secret_key = "supersegreto"
 
-# Configurazione DB PostgreSQL
+# Configurazione DB PostgreSQL da variabile ambiente
 db_url = os.environ.get("DATABASE_URL")
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -52,7 +52,7 @@ class Punteggio(db.Model):
     gioco_id = db.Column(db.Integer, db.ForeignKey("gioco.id"), nullable=False)
 
 
-# --- Creazione tabelle forzata ---
+# --- Creazione forzata delle tabelle ---
 @app.before_request
 def create_tables():
     db.create_all()
@@ -93,7 +93,6 @@ def home():
     )
 
 
-# --- GIOCHI ---
 @app.route("/giochi", methods=["GET", "POST"])
 def giochi():
     if request.method == "POST":
@@ -142,16 +141,6 @@ def delete_gioco(gid):
     return redirect(url_for("giochi"))
 
 
-@app.route("/giochi/<int:gid>/punteggio/<int:pid>/delete", methods=["POST"])
-def delete_punteggio(gid, pid):
-    punteggio = Punteggio.query.get_or_404(pid)
-    db.session.delete(punteggio)
-    db.session.commit()
-    flash("Punteggio eliminato!", "success")
-    return redirect(url_for("gioco_detail", gid=gid))
-
-
-# --- SQUADRE ---
 @app.route("/squadre", methods=["GET", "POST"])
 def squadre():
     if request.method == "POST":
@@ -174,7 +163,6 @@ def delete_squadra(sid):
     return redirect(url_for("squadre"))
 
 
-# --- PARTECIPANTI ---
 @app.route("/partecipanti", methods=["GET", "POST"])
 def partecipanti():
     if request.method == "POST":
@@ -210,7 +198,6 @@ def delete_partecipante(pid):
     return redirect(url_for("partecipanti"))
 
 
-# --- CLASSIFICA ---
 @app.route("/classifica")
 def classifica():
     squadre = Squadra.query.all()
@@ -219,7 +206,6 @@ def classifica():
     return render_template("classifica.html", totali=totali)
 
 
-# --- STATISTICHE ---
 @app.route("/statistiche")
 def statistiche():
     partecipanti = Partecipante.query.all()
@@ -249,7 +235,6 @@ def statistiche():
     )
 
 
-# --- MAIN ---
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5001)
 

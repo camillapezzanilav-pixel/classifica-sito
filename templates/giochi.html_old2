@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Giochi{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">🎲 Giochi</h2>
+
+<form method="post" class="row g-3 mb-4">
+  <div class="col-md-6">
+    <input type="text" class="form-control" name="nome" placeholder="Nome del gioco" required>
+  </div>
+  <div class="col-md-6">
+    <button type="submit" class="btn btn-primary">➕ Aggiungi Gioco</button>
+  </div>
+</form>
+
+<input type="text" id="searchInput" class="form-control mb-3" placeholder="🔍 Cerca gioco...">
+
+<table id="dataTable" class="table table-striped table-bordered align-middle shadow-sm">
+  <thead class="table-primary">
+    <tr>
+      <th>Nome</th>
+      <th>Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for g in giochi %}
+    <tr>
+      <td>
+        <a href="{{ url_for('gioco_detail', gid=g.id) }}" class="fw-bold text-decoration-none">{{ g.nome }}</a>
+      </td>
+      <td>
+        <form action="{{ url_for('delete_gioco', gid=g.id) }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-sm btn-danger"
+                  onclick="return confirm('Sei sicuro di voler eliminare questo gioco?');">🗑️ Elimina</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+document.getElementById("searchInput").addEventListener("keyup", function() {
+  let filter = this.value.toLowerCase();
+  let rows = document.querySelectorAll("#dataTable tbody tr");
+  rows.forEach(r => {
+    let text = r.textContent.toLowerCase();
+    r.style.display = text.includes(filter) ? "" : "none";
+  });
+});
+</script>
+
+{% endblock %}
+
