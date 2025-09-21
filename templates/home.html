@@ -1,58 +1,117 @@
 {% extends "base.html" %}
-{% block title %}Home{% endblock %}
 {% block content %}
+<div class="container mt-4">
 
-<div class="text-center mb-4">
-  <h2 class="fw-bold">🐎 Dove si Va 2025 🐎</h2>
-</div>
-
-<div class="row">
-  <div class="col-md-6 mb-4">
-    <h4 class="mb-3">🏆 Classifica Generale</h4>
-    <table class="table table-striped table-bordered text-center align-middle shadow-sm">
-      <thead class="table-primary">
-        <tr>
-          <th>Posizione</th>
-          <th>Squadra</th>
-          <th>Punti</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for s, punti in totali %}
-        <tr {% if loop.index == 1 %}class="table-success"{% endif %}>
-          <td>{{ loop.index }}</td>
-          <td class="fw-bold">{{ s.nome }}</td>
-          <td>{{ punti|round(2) }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% if not totali %}
-    <div class="alert alert-warning text-center">⚠️ Nessuna squadra inserita</div>
-    {% endif %}
+  <!-- Titolo -->
+  <div class="text-center mb-4">
+    <h1 class="display-5 fw-bold text-primary">Dove si Va 2025</h1>
   </div>
 
-  <div class="col-md-6 mb-4">
-    <h4 class="mb-3">📊 Statistiche</h4>
-    <ul class="list-group shadow-sm">
-      <li class="list-group-item">
-        👶 Più giovane:
-        {% if piu_giovane %}<strong>{{ piu_giovane.nome }}</strong> ({{ piu_giovane.squadra.nome }})
-        {% else %}-{% endif %}
-      </li>
-      <li class="list-group-item">
-        🧓 Più vecchio:
-        {% if piu_vecchio %}<strong>{{ piu_vecchio.nome }}</strong> ({{ piu_vecchio.squadra.nome }})
-        {% else %}-{% endif %}
-      </li>
-      <li class="list-group-item">
-        🌍 Più lontano da {{ ref }}:
-        {% if piu_lontano %}<strong>{{ piu_lontano.nome }}</strong> ({{ piu_lontano.paese }}, {{ piu_lontano.provincia }}) — {{ '%.1f'|format(distanza) }} km
-        {% else %}-{% endif %}
-      </li>
-    </ul>
-  </div>
-</div>
+  <!-- Classifica Generale -->
+  <h3 class="mb-3">🏆 Classifica Generale</h3>
+  <table class="table table-bordered table-hover">
+    <thead class="table-primary">
+      <tr>
+        <th>Posizione</th>
+        <th>Squadra</th>
+        <th>Punti Totali</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for squadra, punti in totali %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ squadra.nome }}</td>
+        <td><span class="badge bg-primary fs-6">{{ "%.2f"|format(punti) }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
+  <!-- Statistiche Partecipanti -->
+  <h3 class="mt-5 mb-3">📊 Statistiche Partecipanti</h3>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">👦 Partecipante più giovane (Maschio)</h5>
+          {% if stats.piu_giovane_m %}
+            <p><strong>{{ stats.piu_giovane_m.nome }}</strong> - 
+               {{ stats.piu_giovane_m.data_nascita.strftime('%d/%m/%Y') if stats.piu_giovane_m.data_nascita else '' }} 
+               ({{ stats.piu_giovane_m.maneggio or 'N/A' }})
+            </p>
+          {% else %}
+            <p>Nessun maschio registrato</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">👧 Partecipante più giovane (Femmina)</h5>
+          {% if stats.piu_giovane_f %}
+            <p><strong>{{ stats.piu_giovane_f.nome }}</strong> - 
+               {{ stats.piu_giovane_f.data_nascita.strftime('%d/%m/%Y') if stats.piu_giovane_f.data_nascita else '' }} 
+               ({{ stats.piu_giovane_f.maneggio or 'N/A' }})
+            </p>
+          {% else %}
+            <p>Nessuna femmina registrata</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">👴 Partecipante più vecchio</h5>
+          {% if stats.piu_vecchio %}
+            <p><strong>{{ stats.piu_vecchio.nome }}</strong> - 
+               {{ stats.piu_vecchio.data_nascita.strftime('%d/%m/%Y') if stats.piu_vecchio.data_nascita else '' }} 
+               ({{ stats.piu_vecchio.maneggio or 'N/A' }})
+            </p>
+          {% else %}
+            <p>Nessun partecipante registrato</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">🐎 Maneggio con più partecipanti</h5>
+          {% if stats.maneggio_top %}
+            <p><strong>{{ stats.maneggio_top }}</strong></p>
+          {% else %}
+            <p>Nessun maneggio registrato</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">📍 Maneggio più lontano da Ragazzola (PR)</h5>
+          {% if stats.maneggio_lontano %}
+            <p><strong>{{ stats.maneggio_lontano }}</strong> - 
+               {{ "%.1f"|format(stats.distanza_lontano) }} km
+            </p>
+          {% else %}
+            <p>Nessun maneggio con coordinate registrato</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
 {% endblock %}
 

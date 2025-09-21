@@ -3,37 +3,54 @@
 <div class="container mt-4">
   <h2>Elenco Partecipanti</h2>
 
+  <!-- Form Aggiungi Partecipante -->
   <form method="post" class="mb-4">
     <div class="row g-2">
-      <div class="col-md-3">
-        <input type="text" name="nome" class="form-control" placeholder="Nome">
+      <div class="col-md-2">
+        <input type="text" name="nome" class="form-control" placeholder="Nome" required>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <input type="date" name="data_nascita" class="form-control">
+      </div>
+      <div class="col-md-2">
+        <select name="sesso" class="form-select">
+          <option value="">-- Sesso --</option>
+          <option value="M">Maschio</option>
+          <option value="F">Femmina</option>
+          <option value="Altro">Altro</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="text" name="maneggio" class="form-control" placeholder="Maneggio">
       </div>
       <div class="col-md-2">
         <input type="text" name="paese" class="form-control" placeholder="Paese">
       </div>
-      <div class="col-md-2">
-        <input type="text" name="provincia" class="form-control" placeholder="Provincia">
+      <div class="col-md-1">
+        <input type="text" name="provincia" class="form-control" placeholder="Prov.">
       </div>
       <div class="col-md-2">
-        <select name="squadra_id" class="form-select">
+        <select name="squadra_id" class="form-select" required>
           <option value="">-- Squadra --</option>
           {% for s in squadre %}
           <option value="{{ s.id }}">{{ s.nome }}</option>
           {% endfor %}
         </select>
       </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100">➕</button>
+      </div>
     </div>
-    <button type="submit" class="btn btn-primary mt-2">➕ Aggiungi</button>
   </form>
 
+  <!-- Tabella Partecipanti -->
   <table class="table table-striped">
     <thead class="table-primary">
       <tr>
         <th>Nome</th>
         <th>Data Nascita</th>
+        <th>Sesso</th>
+        <th>Maneggio</th>
         <th>Paese</th>
         <th>Provincia</th>
         <th>Squadra</th>
@@ -45,12 +62,58 @@
       <tr>
         <td>{{ p.nome }}</td>
         <td>{{ p.data_nascita.strftime('%d/%m/%Y') if p.data_nascita else '' }}</td>
+        <td>{{ p.sesso }}</td>
+        <td>{{ p.maneggio }}</td>
         <td>{{ p.paese }}</td>
         <td>{{ p.provincia }}</td>
         <td>{{ p.squadra.nome }}</td>
-        <td>
+        <td class="d-flex gap-1">
+          <!-- Elimina -->
           <form action="{{ url_for('delete_partecipante', pid=p.id) }}" method="post" style="display:inline;">
-            <button type="submit" class="btn btn-danger btn-sm">🗑 Elimina</button>
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
+          <!-- Modifica -->
+          <button class="btn btn-warning btn-sm" data-bs-toggle="collapse" data-bs-target="#editForm{{ p.id }}">✏️</button>
+        </td>
+      </tr>
+      <!-- Form Modifica -->
+      <tr class="collapse" id="editForm{{ p.id }}">
+        <td colspan="8">
+          <form method="post" action="{{ url_for('edit_partecipante', pid=p.id) }}">
+            <div class="row g-2">
+              <div class="col-md-2">
+                <input type="text" name="nome" value="{{ p.nome }}" class="form-control" required>
+              </div>
+              <div class="col-md-2">
+                <input type="date" name="data_nascita" value="{{ p.data_nascita.isoformat() if p.data_nascita else '' }}" class="form-control">
+              </div>
+              <div class="col-md-2">
+                <select name="sesso" class="form-select">
+                  <option value="M" {% if p.sesso == 'M' %}selected{% endif %}>Maschio</option>
+                  <option value="F" {% if p.sesso == 'F' %}selected{% endif %}>Femmina</option>
+                  <option value="Altro" {% if p.sesso == 'Altro' %}selected{% endif %}>Altro</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <input type="text" name="maneggio" value="{{ p.maneggio }}" class="form-control">
+              </div>
+              <div class="col-md-2">
+                <input type="text" name="paese" value="{{ p.paese }}" class="form-control">
+              </div>
+              <div class="col-md-1">
+                <input type="text" name="provincia" value="{{ p.provincia }}" class="form-control">
+              </div>
+              <div class="col-md-2">
+                <select name="squadra_id" class="form-select" required>
+                  {% for s in squadre %}
+                  <option value="{{ s.id }}" {% if p.squadra_id == s.id %}selected{% endif %}>{{ s.nome }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-1">
+                <button type="submit" class="btn btn-success w-100">💾</button>
+              </div>
+            </div>
           </form>
         </td>
       </tr>

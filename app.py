@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 from math import radians, sin, cos, sqrt, atan2
+from collections import defaultdict
 
 app = Flask(__name__)
 app.secret_key = "supersegreto"
@@ -40,6 +41,8 @@ class Partecipante(db.Model):
     data_nascita = db.Column(db.Date)
     paese = db.Column(db.String(100))
     provincia = db.Column(db.String(10))
+    sesso = db.Column(db.String(10))   # M, F, Altro
+    maneggio = db.Column(db.String(100))
     squadra_id = db.Column(db.Integer, db.ForeignKey("squadra.id"), nullable=False)
     lat = db.Column(db.Float)
     lon = db.Column(db.Float)
@@ -58,6 +61,14 @@ def create_tables():
     db.create_all()
 
 
+# --- Funzione per calcolare distanza ---
+def distanza_km(lat1, lon1, lat2, lon2):
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat/2)**2 + cos(radians(lat1))*cos(radians(lat2))*sin(dlon/2)**2
+    return 2 * 6371 * atan2(sqrt(a), sqrt(1-a))
+
+
 # --- ROUTES ---
 @app.route("/")
 def home():
@@ -65,37 +76,13 @@ def home():
     totali = [(s, sum(p.punti for p in s.punteggi)) for s in squadre]
     totali.sort(key=lambda x: x[1], reverse=True)
 
-    partecipanti = Partecipante.query.all()
-    giovani = [p for p in partecipanti if p.data_nascita]
-    piu_giovane = max(giovani, key=lambda p: p.data_nascita, default=None)
-    piu_vecchio = min(giovani, key=lambda p: p.data_nascita, default=None)
-
- # <<< QUI METTI IL CODICE DI DEBUG >>>
-    for p in giovani:
-        print(p.id, p.nome, p.data_nascita)
-
-    print("Piu giovane:", piu_giovane.nome, piu_giovane.data_nascita if piu_giovane else None)
-    print("Piu vecchio:", piu_vecchio.nome, piu_vecchio.data_nascita if piu_vecchio else None)
-
-    ref_lat, ref_lon = 45.0123, 10.2585
-    piu_lontano, distanza = None, None
-    for p in partecipanti:
-        if p.lat and p.lon:
-            dlat = radians(p.lat - ref_lat)
-            dlon = radians(p.lon - ref_lon)
-            a = sin(dlat/2)**2 + cos(radians(ref_lat))*cos(radians(p.lat))*sin(dlon/2)**2
-            dist = 2*6371*atan2(sqrt(a), sqrt(1-a))
-            if distanza is None or dist > distanza:
-                distanza = dist
-                piu_lontano = p
+    # Statistiche
+    stats = calcola_statistiche()
 
     return render_template(
         "home.html",
         totali=totali,
-        piu_giovane=piu_giovane,
-        piu_vecchio=piu_vecchio,
-        piu_lontano=piu_lontano,
-        distanza=distanza,
+        stats=stats,
         ref="Ragazzola (PR)"
     )
 
@@ -189,6 +176,8 @@ def partecipanti():
         data_nascita = request.form.get("data_nascita")
         paese = request.form.get("paese")
         provincia = request.form.get("provincia")
+        sesso = request.form.get("sesso")
+        maneggio = request.form.get("maneggio")
         squadra_id = request.form.get("squadra_id")
 
         nascita = datetime.strptime(data_nascita, "%Y-%m-%d").date() if data_nascita else None
@@ -198,6 +187,8 @@ def partecipanti():
                 data_nascita=nascita,
                 paese=paese,
                 provincia=provincia,
+                sesso=sesso,
+                maneggio=maneggio,
                 squadra_id=int(squadra_id)
             )
             db.session.add(p)
@@ -217,6 +208,22 @@ def delete_partecipante(pid):
     return redirect(url_for("partecipanti"))
 
 
+@app.route("/partecipanti/<int:pid>/edit", methods=["POST"])
+def edit_partecipante(pid):
+    partecipante = Partecipante.query.get_or_404(pid)
+    partecipante.nome = request.form["nome"]
+    data_nascita = request.form.get("data_nascita")
+    partecipante.data_nascita = datetime.strptime(data_nascita, "%Y-%m-%d").date() if data_nascita else None
+    partecipante.paese = request.form.get("paese")
+    partecipante.provincia = request.form.get("provincia")
+    partecipante.sesso = request.form.get("sesso")
+    partecipante.maneggio = request.form.get("maneggio")
+    partecipante.squadra_id = int(request.form.get("squadra_id"))
+    db.session.commit()
+    flash("Partecipante aggiornato!", "success")
+    return redirect(url_for("partecipanti"))
+
+
 # --- CLASSIFICA ---
 @app.route("/classifica")
 def classifica():
@@ -227,33 +234,46 @@ def classifica():
 
 
 # --- STATISTICHE ---
-@app.route("/statistiche")
-def statistiche():
+def calcola_statistiche():
     partecipanti = Partecipante.query.all()
     giovani = [p for p in partecipanti if p.data_nascita]
-    piu_giovane = max(giovani, key=lambda p: p.data_nascita, default=None)
+
+    piu_giovane_m = max([p for p in giovani if p.sesso == "M"], key=lambda p: p.data_nascita, default=None)
+    piu_giovane_f = max([p for p in giovani if p.sesso == "F"], key=lambda p: p.data_nascita, default=None)
     piu_vecchio = min(giovani, key=lambda p: p.data_nascita, default=None)
 
-    ref_lat, ref_lon = 45.0123, 10.2585
-    piu_lontano, distanza = None, None
+    # Maneggio con più partecipanti
+    conteggio_maneggi = defaultdict(int)
     for p in partecipanti:
-        if p.lat and p.lon:
-            dlat = radians(p.lat - ref_lat)
-            dlon = radians(p.lon - ref_lon)
-            a = sin(dlat/2)**2 + cos(radians(ref_lat))*cos(radians(p.lat))*sin(dlon/2)**2
-            dist = 2*6371*atan2(sqrt(a), sqrt(1-a))
-            if distanza is None or dist > distanza:
-                distanza = dist
-                piu_lontano = p
+        if p.maneggio:
+            conteggio_maneggi[p.maneggio] += 1
+    maneggio_top = max(conteggio_maneggi, key=conteggio_maneggi.get, default=None)
 
-    return render_template(
-        "statistiche.html",
-        piu_giovane=piu_giovane,
-        piu_vecchio=piu_vecchio,
-        piu_lontano=piu_lontano,
-        distanza=distanza,
-        ref="Ragazzola (PR)"
-    )
+    # Maneggio più lontano
+    ref_lat, ref_lon = 45.0123, 10.2585
+    distanze_maneggi = {}
+    for p in partecipanti:
+        if p.lat and p.lon and p.maneggio:
+            dist = distanza_km(ref_lat, ref_lon, p.lat, p.lon)
+            if p.maneggio not in distanze_maneggi or dist > distanze_maneggi[p.maneggio]:
+                distanze_maneggi[p.maneggio] = dist
+    maneggio_lontano = max(distanze_maneggi, key=distanze_maneggi.get, default=None)
+    distanza_lontano = distanze_maneggi.get(maneggio_lontano)
+
+    return {
+        "piu_giovane_m": piu_giovane_m,
+        "piu_giovane_f": piu_giovane_f,
+        "piu_vecchio": piu_vecchio,
+        "maneggio_top": maneggio_top,
+        "maneggio_lontano": maneggio_lontano,
+        "distanza_lontano": distanza_lontano,
+    }
+
+
+@app.route("/statistiche")
+def statistiche():
+    stats = calcola_statistiche()
+    return render_template("statistiche.html", stats=stats)
 
 
 # --- MAIN ---

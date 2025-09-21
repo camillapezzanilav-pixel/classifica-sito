@@ -2,28 +2,22 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
+from math import radians, sin, cos, sqrt, atan2
 
 app = Flask(__name__)
 app.secret_key = "supersegreto"
 
-import os 
-# Configurazione DB PostgreSQL (Render fornisce DATABASE_URL come variabile ambiente)
+# Configurazione DB PostgreSQL
 db_url = os.environ.get("DATABASE_URL")
-
-# Fix per compatibilità: Render a volte dà postgres:// ma SQLAlchemy vuole postgresql://
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
 if not db_url:
-    raise RuntimeError("❌ DATABASE_URL non impostata.")
+    raise RuntimeError("❌ DATABASE_URL non impostata. Aggiungila su Render.")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
-
-# Creazione tabelle se non esistono
-with app.app_context():
-    db.create_all()
 
 
 # --- MODELLI ---
@@ -58,6 +52,12 @@ class Punteggio(db.Model):
     gioco_id = db.Column(db.Integer, db.ForeignKey("gioco.id"), nullable=False)
 
 
+# --- Creazione tabelle forzata ---
+@app.before_request
+def create_tables():
+    db.create_all()
+
+
 # --- ROUTES ---
 @app.route("/")
 def home():
@@ -70,11 +70,17 @@ def home():
     piu_giovane = max(giovani, key=lambda p: p.data_nascita, default=None)
     piu_vecchio = min(giovani, key=lambda p: p.data_nascita, default=None)
 
+ # <<< QUI METTI IL CODICE DI DEBUG >>>
+    for p in giovani:
+        print(p.id, p.nome, p.data_nascita)
+
+    print("Piu giovane:", piu_giovane.nome, piu_giovane.data_nascita if piu_giovane else None)
+    print("Piu vecchio:", piu_vecchio.nome, piu_vecchio.data_nascita if piu_vecchio else None)
+
     ref_lat, ref_lon = 45.0123, 10.2585
     piu_lontano, distanza = None, None
     for p in partecipanti:
         if p.lat and p.lon:
-            from math import radians, sin, cos, sqrt, atan2
             dlat = radians(p.lat - ref_lat)
             dlon = radians(p.lon - ref_lon)
             a = sin(dlat/2)**2 + cos(radians(ref_lat))*cos(radians(p.lat))*sin(dlon/2)**2
@@ -111,7 +117,7 @@ def giochi():
 @app.route("/giochi/<int:gid>", methods=["GET", "POST"])
 def gioco_detail(gid):
     gioco = Gioco.query.get_or_404(gid)
-    squadre = Squadra.query.order_by(Squadra.nome.asc()).all()  # 👈 squadre in ordine alfabetico
+    squadre = Squadra.query.order_by(Squadra.nome.asc()).all()
 
     if request.method == "POST":
         for s in squadre:
@@ -134,15 +140,6 @@ def gioco_detail(gid):
     return render_template("gioco_detail.html", gioco=gioco, squadre=squadre, punteggi=punteggi)
 
 
-@app.route("/giochi/<int:gid>/punteggio/<int:pid>/delete", methods=["POST"])
-def delete_punteggio(gid, pid):
-    punteggio = Punteggio.query.get_or_404(pid)
-    db.session.delete(punteggio)
-    db.session.commit()
-    flash("Punteggio eliminato!", "success")
-    return redirect(url_for("gioco_detail", gid=gid))
-
-
 @app.route("/giochi/<int:gid>/delete", methods=["POST"])
 def delete_gioco(gid):
     gioco = Gioco.query.get_or_404(gid)
@@ -150,6 +147,15 @@ def delete_gioco(gid):
     db.session.commit()
     flash("Gioco eliminato!", "success")
     return redirect(url_for("giochi"))
+
+
+@app.route("/giochi/<int:gid>/punteggio/<int:pid>/delete", methods=["POST"])
+def delete_punteggio(gid, pid):
+    punteggio = Punteggio.query.get_or_404(pid)
+    db.session.delete(punteggio)
+    db.session.commit()
+    flash("Punteggio eliminato!", "success")
+    return redirect(url_for("gioco_detail", gid=gid))
 
 
 # --- SQUADRE ---
@@ -232,7 +238,6 @@ def statistiche():
     piu_lontano, distanza = None, None
     for p in partecipanti:
         if p.lat and p.lon:
-            from math import radians, sin, cos, sqrt, atan2
             dlat = radians(p.lat - ref_lat)
             dlon = radians(p.lon - ref_lon)
             a = sin(dlat/2)**2 + cos(radians(ref_lat))*cos(radians(p.lat))*sin(dlon/2)**2
