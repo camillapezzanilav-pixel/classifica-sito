@@ -70,6 +70,13 @@ def home():
     piu_giovane = max(giovani, key=lambda p: p.data_nascita, default=None)
     piu_vecchio = min(giovani, key=lambda p: p.data_nascita, default=None)
 
+ # <<< QUI METTI IL CODICE DI DEBUG >>>
+    for p in giovani:
+        print(p.id, p.nome, p.data_nascita)
+
+    print("Piu giovane:", piu_giovane.nome, piu_giovane.data_nascita if piu_giovane else None)
+    print("Piu vecchio:", piu_vecchio.nome, piu_vecchio.data_nascita if piu_vecchio else None)
+
     ref_lat, ref_lon = 45.0123, 10.2585
     piu_lontano, distanza = None, None
     for p in partecipanti:
