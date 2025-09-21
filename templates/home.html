@@ -1,15 +1,13 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="container mt-4">
 
-  <!-- Titolo -->
-  <div class="text-center mb-4">
-    <h1 class="display-5 fw-bold text-primary">Dove si Va 2025</h1>
-  </div>
+  <h1 class="text-center mb-4">Dove si Va 2025</h1>
 
-  <!-- Classifica Generale -->
-  <h3 class="mb-3">🏆 Classifica Generale</h3>
-  <table class="table table-bordered table-hover">
+  <!-- Classifica generale -->
+  <h2 class="mb-3 text-center">Classifica Generale</h2>
+  <table class="table table-bordered table-striped text-center">
     <thead class="table-primary">
       <tr>
         <th>Posizione</th>
@@ -18,99 +16,60 @@
       </tr>
     </thead>
     <tbody>
-      {% for squadra, punti in totali %}
+      {% for squadra, punti in totali[:10] %}
       <tr>
         <td>{{ loop.index }}</td>
         <td>{{ squadra.nome }}</td>
-        <td><span class="badge bg-primary fs-6">{{ "%.2f"|format(punti) }}</span></td>
+        <td><span class="badge bg-primary fs-6">{{ '%.2f' % punti }}</span></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  <p class="text-center"><a href="{{ url_for('classifica') }}" class="btn btn-outline-primary btn-sm">Vedi tutta la classifica</a></p>
 
-  <!-- Statistiche Partecipanti -->
-  <h3 class="mt-5 mb-3">📊 Statistiche Partecipanti</h3>
-  <div class="row">
-    <div class="col-md-6">
-      <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">👦 Partecipante più giovane (Maschio)</h5>
-          {% if stats.piu_giovane_m %}
-            <p><strong>{{ stats.piu_giovane_m.nome }}</strong> - 
-               {{ stats.piu_giovane_m.data_nascita.strftime('%d/%m/%Y') if stats.piu_giovane_m.data_nascita else '' }} 
-               ({{ stats.piu_giovane_m.maneggio or 'N/A' }})
-            </p>
-          {% else %}
-            <p>Nessun maschio registrato</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
+  <hr class="my-4">
 
-    <div class="col-md-6">
-      <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">👧 Partecipante più giovane (Femmina)</h5>
-          {% if stats.piu_giovane_f %}
-            <p><strong>{{ stats.piu_giovane_f.nome }}</strong> - 
-               {{ stats.piu_giovane_f.data_nascita.strftime('%d/%m/%Y') if stats.piu_giovane_f.data_nascita else '' }} 
-               ({{ stats.piu_giovane_f.maneggio or 'N/A' }})
-            </p>
-          {% else %}
-            <p>Nessuna femmina registrata</p>
-          {% endif %}
-        </div>
-      </div>
+  <!-- Partecipante da più lontano -->
+  <h2 class="mb-3 text-center">Partecipante da più lontano</h2>
+  {% if partecipante_lontano %}
+  <div class="card shadow-sm border-primary mx-auto" style="max-width: 500px;">
+    <div class="card-body text-center">
+      <h5 class="card-title text-primary">{{ partecipante_lontano.nome }}</h5>
+      <p class="card-text mb-1">
+        <strong>Maneggio:</strong> {{ partecipante_lontano.maneggio or "N/A" }}
+      </p>
+      <p class="card-text mb-1">
+        <strong>Provenienza:</strong> {{ partecipante_lontano.paese }} ({{ partecipante_lontano.provincia }})
+      </p>
+      <p class="card-text">
+        <strong>Distanza:</strong> {{ '%.1f' % distanza_partecipante_max }} km
+      </p>
     </div>
   </div>
+  {% else %}
+  <p class="text-center text-muted">Nessun partecipante con coordinate registrate.</p>
+  {% endif %}
 
-  <div class="row">
-    <div class="col-md-6">
-      <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">👴 Partecipante più vecchio</h5>
-          {% if stats.piu_vecchio %}
-            <p><strong>{{ stats.piu_vecchio.nome }}</strong> - 
-               {{ stats.piu_vecchio.data_nascita.strftime('%d/%m/%Y') if stats.piu_vecchio.data_nascita else '' }} 
-               ({{ stats.piu_vecchio.maneggio or 'N/A' }})
-            </p>
-          {% else %}
-            <p>Nessun partecipante registrato</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
+  <hr class="my-4">
 
-    <div class="col-md-6">
-      <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">🐎 Maneggio con più partecipanti</h5>
-          {% if stats.maneggio_top %}
-            <p><strong>{{ stats.maneggio_top }}</strong></p>
-          {% else %}
-            <p>Nessun maneggio registrato</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-12">
-      <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">📍 Maneggio più lontano da Ragazzola (PR)</h5>
-          {% if stats.maneggio_lontano %}
-            <p><strong>{{ stats.maneggio_lontano }}</strong> - 
-               {{ "%.1f"|format(stats.distanza_lontano) }} km
-            </p>
-          {% else %}
-            <p>Nessun maneggio con coordinate registrato</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Statistiche -->
+  <h2 class="mb-3 text-center">Statistiche</h2>
+  <table class="table table-bordered table-striped text-center">
+    <thead class="table-info">
+      <tr>
+        <th>Maneggio</th>
+        <th>Numero Partecipanti</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for maneggio, numero in conteggio_maneggi.items() %}
+      <tr>
+        <td>{{ maneggio }}</td>
+        <td>{{ numero }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
 </div>
 {% endblock %}
