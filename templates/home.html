@@ -3,10 +3,10 @@
 {% block content %}
 <div class="container mt-4">
 
-  <h1 class="text-center mb-4">Dove si Va 2025</h1>
+  <h1 class="text-center mb-4">🏇 Dove si Va 2025</h1>
 
   <!-- Classifica generale -->
-  <h2 class="mb-3 text-center">Classifica Generale</h2>
+  <h2 class="mb-3 text-center">🏆 Classifica Generale</h2>
   <table class="table table-bordered table-striped text-center">
     <thead class="table-primary">
       <tr>
@@ -18,31 +18,33 @@
     <tbody>
       {% for squadra, punti in totali[:10] %}
       <tr>
-        <td>{{ loop.index }}</td>
+        <td>
+          {% if loop.index == 1 %} 🥇 {% elif loop.index == 2 %} 🥈 {% elif loop.index == 3 %} 🥉 {% else %} {{ loop.index }} {% endif %}
+        </td>
         <td>{{ squadra.nome }}</td>
         <td><span class="badge bg-primary fs-6">{{ '%.2f' % punti }}</span></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
-  <p class="text-center"><a href="{{ url_for('classifica') }}" class="btn btn-outline-primary btn-sm">Vedi tutta la classifica</a></p>
+  <p class="text-center"><a href="{{ url_for('classifica') }}" class="btn btn-outline-primary btn-sm">📊 Vedi tutta la classifica</a></p>
 
   <hr class="my-4">
 
   <!-- Partecipante da più lontano -->
-  <h2 class="mb-3 text-center">Partecipante da più lontano</h2>
+  <h2 class="mb-3 text-center">🌍 Partecipante da più lontano</h2>
   {% if partecipante_lontano %}
   <div class="card shadow-sm border-primary mx-auto" style="max-width: 500px;">
     <div class="card-body text-center">
       <h5 class="card-title text-primary">{{ partecipante_lontano.nome }}</h5>
       <p class="card-text mb-1">
-        <strong>Maneggio:</strong> {{ partecipante_lontano.maneggio or "N/A" }}
+        🐴 <strong>Maneggio:</strong> {{ partecipante_lontano.maneggio or "N/A" }}
       </p>
       <p class="card-text mb-1">
-        <strong>Provenienza:</strong> {{ partecipante_lontano.paese }} ({{ partecipante_lontano.provincia }})
+        📍 <strong>Provenienza:</strong> {{ partecipante_lontano.paese }} ({{ partecipante_lontano.provincia }})
       </p>
-      <p class="card-text">
-        <strong>Distanza:</strong> {{ '%.1f' % distanza_partecipante_max }} km
+      <p class="card-text fs-5 fw-bold">
+        📏 {{ '%.1f' % distanza_partecipante_max }} km
       </p>
     </div>
   </div>
@@ -53,12 +55,12 @@
   <hr class="my-4">
 
   <!-- Statistiche -->
-  <h2 class="mb-3 text-center">Statistiche</h2>
+  <h2 class="mb-3 text-center">📊 Statistiche per Maneggio</h2>
   <table class="table table-bordered table-striped text-center">
     <thead class="table-info">
       <tr>
-        <th>Maneggio</th>
-        <th>Numero Partecipanti</th>
+        <th>🐴 Maneggio</th>
+        <th>👥 Partecipanti</th>
       </tr>
     </thead>
     <tbody>
