@@ -1,35 +1,13 @@
 {% extends "base.html" %}
+{% block title %}Giochi{% endblock %}
 {% block content %}
-<div class="container mt-4">
-  <h2>Elenco Giochi</h2>
-
-  <form method="post" class="mb-3">
-    <div class="input-group">
-      <input type="text" name="nome" class="form-control" placeholder="Nuovo gioco">
-      <button type="submit" class="btn btn-primary">➕ Aggiungi</button>
-    </div>
-  </form>
-
-  <table class="table table-striped">
-    <thead class="table-primary">
-      <tr>
-        <th>Nome Gioco</th>
-        <th>Azioni</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for g in giochi %}
-      <tr>
-        <td><a href="{{ url_for('gioco_detail', gid=g.id) }}">{{ g.nome }}</a></td>
-        <td>
-          <form action="{{ url_for('delete_gioco', gid=g.id) }}" method="post" style="display:inline;">
-            <button type="submit" class="btn btn-danger btn-sm">🗑 Elimina</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+<h1>Giochi</h1>
+<ul class="list-group">
+  {% for gioco in giochi %}
+  <li class="list-group-item">{{ gioco.nome }}</li>
+  {% else %}
+  <li class="list-group-item">Nessun gioco inserito.</li>
+  {% endfor %}
+</ul>
 {% endblock %}
 

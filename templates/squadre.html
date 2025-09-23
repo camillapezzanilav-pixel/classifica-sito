@@ -1,35 +1,13 @@
 {% extends "base.html" %}
+{% block title %}Squadre{% endblock %}
 {% block content %}
-<div class="container mt-4">
-  <h2>Elenco Squadre</h2>
-
-  <form method="post" class="mb-3">
-    <div class="input-group">
-      <input type="text" name="nome" class="form-control" placeholder="Nuova squadra">
-      <button type="submit" class="btn btn-primary">➕ Aggiungi</button>
-    </div>
-  </form>
-
-  <table class="table table-striped">
-    <thead class="table-primary">
-      <tr>
-        <th>Nome Squadra</th>
-        <th>Azioni</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in squadre %}
-      <tr>
-        <td>{{ s.nome }}</td>
-        <td>
-          <form action="{{ url_for('delete_squadra', sid=s.id) }}" method="post" style="display:inline;">
-            <button type="submit" class="btn btn-danger btn-sm">🗑 Elimina</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+<h1>Squadre</h1>
+<ul class="list-group">
+  {% for squadra in squadre %}
+  <li class="list-group-item">{{ squadra.nome }} <span class="text-muted">({{ squadra.maneggio }})</span></li>
+  {% else %}
+  <li class="list-group-item">Nessuna squadra ancora.</li>
+  {% endfor %}
+</ul>
 {% endblock %}
 
