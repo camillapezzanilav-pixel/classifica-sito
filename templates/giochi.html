@@ -1,12 +1,35 @@
 {% extends "base.html" %}
 {% block title %}Giochi{% endblock %}
 {% block content %}
-<h1>Giochi</h1>
+<h1 class="h4 mb-3">Gestione Giochi</h1>
+
+<form method="post" class="row g-2 mb-4">
+  <div class="col-sm-8">
+    <input class="form-control" name="nome" placeholder="Nome gioco (es. Gimkana)" required>
+  </div>
+  <div class="col-sm-4 d-grid">
+    <button class="btn btn-primary">➕ Aggiungi</button>
+  </div>
+</form>
+
 <ul class="list-group">
-  {% for gioco in giochi %}
-  <li class="list-group-item">{{ gioco.nome }}</li>
+  {% for g in giochi %}
+  <li class="list-group-item">
+    <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+      <a class="text-decoration-none" href="{{ url_for('dettaglio_gioco', id=g.id) }}"><strong>{{ g.nome }}</strong></a>
+      <div class="d-flex gap-2">
+        <form method="post" action="{{ url_for('edit_gioco', id=g.id) }}" class="d-flex gap-2">
+          <input class="form-control form-control-sm" name="nome" value="{{ g.nome }}" required>
+          <button class="btn btn-sm btn-success">💾</button>
+        </form>
+        <form method="post" action="{{ url_for('delete_gioco', id=g.id) }}" onsubmit="return confirm('Eliminare questo gioco e i suoi punteggi?')">
+          <button class="btn btn-sm btn-danger">🗑</button>
+        </form>
+      </div>
+    </div>
+  </li>
   {% else %}
-  <li class="list-group-item">Nessun gioco inserito.</li>
+  <li class="list-group-item text-muted fst-italic">Nessun gioco ancora.</li>
   {% endfor %}
 </ul>
 {% endblock %}

@@ -1,21 +1,88 @@
 {% extends "base.html" %}
 {% block title %}Partecipanti{% endblock %}
 {% block content %}
-<h1>Partecipanti</h1>
-<table class="table table-striped">
-  <thead><tr><th>Nome</th><th>Nascita</th><th>Sesso</th><th>Squadra</th></tr></thead>
-  <tbody>
+<h1 class="h4 mb-3">Gestione Partecipanti</h1>
+
+<form method="post" class="row g-2 mb-4">
+  <div class="col-md-6"><input class="form-control" name="nome" placeholder="Nome e Cognome" required></div>
+  <div class="col-md-3"><input type="date" class="form-control" name="nascita" required></div>
+  <div class="col-md-3">
+    <select class="form-select" name="sesso" required>
+      <option value="">Sesso</option>
+      <option value="F">Femmina</option>
+      <option value="M">Maschio</option>
+      <option value="N">Non specificato</option>
+    </select>
+  </div>
+  <div class="col-md-4"><input class="form-control" name="luogo" placeholder="Luogo (Comune)"></div>
+  <div class="col-md-2"><input class="form-control" name="provincia" placeholder="Prov."></div>
+  <div class="col-md-6"><input class="form-control" name="maneggio" placeholder="Maneggio"></div>
+  <div class="col-md-6">
+    <select class="form-select" name="squadra_id">
+      <option value="">— Nessuna squadra —</option>
+      {% for s in squadre %}
+      <option value="{{ s.id }}">{{ s.nome }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3"><input type="number" step="any" class="form-control" name="lat" placeholder="Lat. (opz.)"></div>
+  <div class="col-md-3"><input type="number" step="any" class="form-control" name="lng" placeholder="Lng (opz.)"></div>
+  <div class="col-12 d-grid"><button class="btn btn-primary">➕ Aggiungi</button></div>
+</form>
+
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead>
+      <tr><th>Nome</th><th>Nascita</th><th>Sesso</th><th>Luogo</th><th>Prov.</th><th>Maneggio</th><th>Squadra</th><th style="width:380px">Modifica</th><th style="width:90px">Elimina</th></tr>
+    </thead>
+    <tbody>
     {% for p in partecipanti %}
-    <tr>
-      <td>{{ p.nome }}</td>
-      <td>{{ p.nascita }}</td>
-      <td>{{ p.sesso }}</td>
-      <td>{{ p.squadra.nome if p.squadra else "—" }}</td>
-    </tr>
+      <tr>
+        <td>{{ p.nome }}</td>
+        <td>{{ p.nascita }}</td>
+        <td>{{ p.sesso }}</td>
+        <td>{{ p.luogo or "—" }}</td>
+        <td>{{ p.provincia or "—" }}</td>
+        <td>{{ p.maneggio or "—" }}</td>
+        <td>{{ p.squadra.nome if p.squadra else "—" }}</td>
+        <td>
+          <form method="post" action="{{ url_for('edit_partecipante', id=p.id) }}" class="row g-1">
+            <div class="col-md-3"><input class="form-control form-control-sm" name="nome" value="{{ p.nome }}" required></div>
+            <div class="col-md-3"><input type="date" class="form-control form-control-sm" name="nascita" value="{{ p.nascita }}"></div>
+            <div class="col-md-2">
+              <select class="form-select form-select-sm" name="sesso">
+                <option value="F" {{ "selected" if p.sesso=="F" else "" }}>F</option>
+                <option value="M" {{ "selected" if p.sesso=="M" else "" }}>M</option>
+                <option value="N" {{ "selected" if p.sesso=="N" else "" }}>N</option>
+              </select>
+            </div>
+            <div class="col-md-2"><input class="form-control form-control-sm" name="luogo" value="{{ p.luogo or '' }}" placeholder="Luogo"></div>
+            <div class="col-md-2"><input class="form-control form-control-sm" name="provincia" value="{{ p.provincia or '' }}" placeholder="Prov."></div>
+            <div class="col-md-3"><input class="form-control form-control-sm" name="maneggio" value="{{ p.maneggio or '' }}" placeholder="Maneggio"></div>
+            <div class="col-md-3">
+              <select class="form-select form-select-sm" name="squadra_id">
+                <option value="">—</option>
+                {% for s in squadre %}
+                <option value="{{ s.id }}" {{ "selected" if p.squadra_id==s.id else "" }}>{{ s.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2"><input type="number" step="any" class="form-control form-control-sm" name="lat" value="{{ p.lat if p.lat is not none else '' }}" placeholder="Lat."></div>
+            <div class="col-md-2"><input type="number" step="any" class="form-control form-control-sm" name="lng" value="{{ p.lng if p.lng is not none else '' }}" placeholder="Lng"></div>
+            <div class="col-md-2 d-grid"><button class="btn btn-sm btn-success">💾</button></div>
+          </form>
+        </td>
+        <td>
+          <form method="post" action="{{ url_for('delete_partecipante', id=p.id) }}" onsubmit="return confirm('Eliminare il partecipante?')">
+            <button class="btn btn-sm btn-danger">🗑</button>
+          </form>
+        </td>
+      </tr>
     {% else %}
-    <tr><td colspan="4">Nessun partecipante ancora.</td></tr>
+      <tr><td colspan="9" class="text-muted fst-italic">Nessun partecipante ancora.</td></tr>
     {% endfor %}
-  </tbody>
-</table>
+    </tbody>
+  </table>
+</div>
 {% endblock %}
 

@@ -1,37 +1,95 @@
 {% extends "base.html" %}
-{% block title %}Home{% endblock %}
+{% block title %}Home – Giochi dei Maneggi{% endblock %}
 {% block content %}
-<h1>Benvenuti nei Giochi dei Maneggi</h1>
+<h1 class="h3 mb-3">Benvenuti</h1>
+<p class="text-muted">Da qui puoi gestire Giochi, Squadre e Partecipanti. Le classifiche si aggiornano automaticamente.</p>
 
-<h3>Classifica Generale</h3>
-<table class="table table-striped">
-  <thead><tr><th>#</th><th>Squadra</th><th>Punti</th></tr></thead>
-  <tbody>
-    {% for i,row in enumerate(classifica_generale, start=1) %}
-    <tr><td>{{ i }}</td><td>{{ row[0] }}</td><td>{{ row[1] or 0 }}</td></tr>
-    {% else %}
-    <tr><td colspan="3">Nessun punteggio ancora.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header bg-white"><strong>Classifica Generale (Squadre)</strong></div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead><tr><th>#</th><th>Squadra</th><th>Punti</th></tr></thead>
+            <tbody>
+            {% for idx, row in enumerate(classifica_generale, start=1) %}
+              <tr><td>{{ idx }}</td><td>{{ row[0].nome }}</td><td><strong>{{ row[1] }}</strong></td></tr>
+            {% else %}
+              <tr><td colspan="3" class="text-muted fst-italic">Nessun punteggio inserito.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <small class="text-muted">Somma dei punteggi di tutti i giochi per squadra.</small>
+      </div>
+    </div>
+  </div>
 
-<h3>Classifica Maneggi</h3>
-<table class="table table-striped">
-  <thead><tr><th>#</th><th>Maneggio</th><th>Partecipanti</th></tr></thead>
-  <tbody>
-    {% for i,row in enumerate(classifica_maneggi, start=1) %}
-    <tr><td>{{ i }}</td><td>{{ row[0] }}</td><td>{{ row[1] }}</td></tr>
-    {% else %}
-    <tr><td colspan="3">Nessun partecipante ancora.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header bg-white"><strong>Classifica Maneggi (per partecipanti)</strong></div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead><tr><th>#</th><th>Maneggio</th><th>Partecipanti</th></tr></thead>
+            <tbody>
+            {% for idx, row in enumerate(classifica_maneggi, start=1) %}
+              <tr><td>{{ idx }}</td><td>{{ row[0] or "—" }}</td><td><strong>{{ row[1] }}</strong></td></tr>
+            {% else %}
+              <tr><td colspan="3" class="text-muted fst-italic">Nessun partecipante inserito.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <small class="text-muted">Conteggio dal campo “maneggio” dei partecipanti.</small>
+      </div>
+    </div>
+  </div>
 
-<h3>Premiazioni</h3>
-<ul>
-  <li>Più giovane (F): {{ youngest_f.nome if youngest_f else "—" }}</li>
-  <li>Più giovane (M): {{ youngest_m.nome if youngest_m else "—" }}</li>
-  <li>Più vecchio: {{ oldest.nome if oldest else "—" }}</li>
-</ul>
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white"><strong>Premiazioni</strong></div>
+      <div class="card-body row g-3">
+        <div class="col-md-6 col-xl-3">
+          <div class="p-3 border rounded-4 bg-light h-100">
+            <div class="fw-bold mb-1">Più giovane (F)</div>
+            <div class="h6 mb-0">{{ youngest_f.nome if youngest_f else "—" }}</div>
+            <div class="text-muted small">{{ youngest_f.nascita if youngest_f else "" }}</div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="p-3 border rounded-4 bg-light h-100">
+            <div class="fw-bold mb-1">Più giovane (M)</div>
+            <div class="h6 mb-0">{{ youngest_m.nome if youngest_m else "—" }}</div>
+            <div class="text-muted small">{{ youngest_m.nascita if youngest_m else "" }}</div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="p-3 border rounded-4 bg-light h-100">
+            <div class="fw-bold mb-1">Più vecchio</div>
+            <div class="h6 mb-0">{{ oldest.nome if oldest else "—" }}</div>
+            <div class="text-muted small">{{ oldest.nascita if oldest else "" }}</div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="p-3 border rounded-4 bg-light h-100">
+            <div class="fw-bold mb-1">Da più lontano</div>
+            {% if farthest %}
+              <div class="h6 mb-0">{{ farthest[0].nome }}</div>
+              <div class="text-muted small">{{ "%.1f" | format(farthest[1]) }} km — {{ farthest[0].luogo or "—" }} ({{ farthest[0].provincia or "?" }})</div>
+            {% else %}
+              <div class="h6 mb-0">—</div>
+              <div class="text-muted small">Inserisci lat/lng nei partecipanti</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="card-footer bg-white text-muted small">
+        Distanza calcolata dalla base: {{ base_coords[0] }}, {{ base_coords[1] }} (impostabile con variabili d’ambiente BASE_LAT / BASE_LNG).
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 

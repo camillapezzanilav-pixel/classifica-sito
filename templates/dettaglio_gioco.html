@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ gioco.nome }} – Punteggi{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+  <h1 class="h4 mb-0">Punteggi – {{ gioco.nome }}</h1>
+  <a href="{{ url_for('giochi') }}" class="btn btn-outline-secondary btn-sm">⬅️ Torna ai giochi</a>
+</div>
+
+<input type="text" id="search" class="form-control mb-3" placeholder="🔍 Cerca squadra...">
+
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead><tr><th>Squadra</th><th style="width:240px">Punteggio</th><th style="width:90px">Azioni</th></tr></thead>
+    <tbody id="squadre-table">
+    {% for squadra, punteggio in righe %}
+      <tr>
+        <td>{{ squadra.nome }}</td>
+        <td>
+          <form method="post" class="d-flex gap-2">
+            <input type="hidden" name="squadra_id" value="{{ squadra.id }}">
+            <input type="number" class="form-control" name="punti" min="0" step="1" value="{{ punteggio.punti if punteggio else '' }}" placeholder="0" required>
+            <button class="btn btn-success">💾</button>
+          </form>
+        </td>
+        <td>
+          {% if punteggio %}
+          <form method="post" action="{{ url_for('delete_punteggio', gioco_id=gioco.id, squadra_id=squadra.id) }}" onsubmit="return confirm('Eliminare il punteggio di questa squadra?')">
+            <button class="btn btn-danger btn-sm">🗑</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+document.getElementById("search").addEventListener("input", function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll("#squadre-table tr").forEach(tr=>{
+    const name = tr.cells[0].innerText.toLowerCase();
+    tr.style.display = name.includes(q) ? "" : "none";
+  });
+});
+</script>
+{% endblock %}
+
