@@ -18,6 +18,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
+# ✅ crea le tabelle al boot, anche su Render con Gunicorn
+with app.app_context():
+    db.create_all()
 # -------------------
 # MODELLI
 # -------------------
@@ -104,11 +107,9 @@ def partecipanti():
     partecipanti = Partecipante.query.all()
     return render_template("partecipanti.html", partecipanti=partecipanti)
 
+
 # -------------------
-# AVVIO
+# AVVIO (solo locale)
 # -------------------
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
-
