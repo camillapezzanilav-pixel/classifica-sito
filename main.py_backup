@@ -4,7 +4,6 @@ from datetime import date
 
 from flask import Flask, render_template, request, redirect, url_for, abort
 from flask_sqlalchemy import SQLAlchemy
-from geopy.geocoders import Nominatim
 
 # -------------------
 # CONFIGURAZIONE APP
@@ -42,8 +41,8 @@ class Partecipante(db.Model):
     luogo = db.Column(db.String(120))
     provincia = db.Column(db.String(10))
     maneggio = db.Column(db.String(120))
-    lat = db.Column(db.Float)
-    lng = db.Column(db.Float)
+    lat = db.Column(db.Float)  # opzionale
+    lng = db.Column(db.Float)  # opzionale
     squadra_id = db.Column(db.Integer, db.ForeignKey("squadre.id"))
 
     @property
@@ -69,28 +68,14 @@ class Punteggio(db.Model):
     squadra_id = db.Column(db.Integer, db.ForeignKey("squadre.id"))
 
 
-# ✅ CREA LE TABELLE
+# ✅ CREA LE TABELLE DOPO I MODELLI (funziona anche con Gunicorn su Render)
 with app.app_context():
     db.create_all()
 
 # -------------------
-# GEOLOCATOR
-# -------------------
-geolocator = Nominatim(user_agent="giochi-maneggi")
-
-def geocode_location(luogo, provincia):
-    try:
-        query = f"{luogo}, {provincia}, Italia"
-        location = geolocator.geocode(query, timeout=10)
-        if location:
-            return location.latitude, location.longitude
-    except Exception:
-        pass
-    return None, None
-
-# -------------------
 # UTILS
 # -------------------
+# Centro di riferimento per distanza: Ragazzona (PR) → fallback Parma centro
 BASE_LAT = float(os.environ.get("BASE_LAT", "44.8015"))
 BASE_LNG = float(os.environ.get("BASE_LNG", "10.3279"))
 
@@ -110,6 +95,7 @@ def haversine_km(lat1, lon1, lat2, lon2):
 # -------------------
 @app.route("/")
 def home():
+    # Classifica generale (somma punti per squadra)
     classifica_generale = (
         db.session.query(Squadra, db.func.coalesce(db.func.sum(Punteggio.punti), 0).label("totale"))
         .outerjoin(Punteggio)
@@ -118,6 +104,7 @@ def home():
         .all()
     )
 
+    # Classifica maneggi (conteggio dal campo maneggio dei partecipanti)
     classifica_maneggi = (
         db.session.query(Partecipante.maneggio, db.func.count(Partecipante.id).label("n"))
         .group_by(Partecipante.maneggio)
@@ -125,10 +112,12 @@ def home():
         .all()
     )
 
+    # Premiazioni
     youngest_f = Partecipante.query.filter_by(sesso="F").order_by(Partecipante.nascita.desc()).first()
     youngest_m = Partecipante.query.filter_by(sesso="M").order_by(Partecipante.nascita.desc()).first()
     oldest = Partecipante.query.order_by(Partecipante.nascita.asc()).first()
 
+    # Più lontano (solo chi ha lat/lng)
     partecipanti_con_geo = Partecipante.query.filter(Partecipante.lat.isnot(None), Partecipante.lng.isnot(None)).all()
     farthest = None
     maxdist = -1
@@ -223,6 +212,7 @@ def dettaglio_gioco(id):
         db.session.commit()
         return redirect(url_for("dettaglio_gioco", id=gioco.id))
 
+    # lista squadre + loro punteggio per questo gioco (anche chi non ha punteggio)
     righe = (
         db.session.query(Squadra, Punteggio)
         .outerjoin(Punteggio, (Punteggio.squadra_id == Squadra.id) & (Punteggio.gioco_id == gioco.id))
@@ -253,16 +243,9 @@ def partecipanti():
         lng = request.form.get("lng") or None
         squadra_id = request.form.get("squadra_id") or None
 
-        if (not lat or not lng) and luogo and provincia:
-            geo_lat, geo_lng = geocode_location(luogo, provincia)
-            if geo_lat and geo_lng:
-                lat, lng = geo_lat, geo_lng
-
         p = Partecipante(
             nome=nome, nascita=nascita, sesso=sesso, luogo=luogo, provincia=provincia,
-            maneggio=maneggio,
-            lat=float(lat) if lat else None,
-            lng=float(lng) if lng else None,
+            maneggio=maneggio, lat=float(lat) if lat else None, lng=float(lng) if lng else None,
             squadra_id=int(squadra_id) if squadra_id else None
         )
         db.session.add(p)
@@ -281,20 +264,12 @@ def edit_partecipante(id):
     p.luogo = request.form.get("luogo", p.luogo).strip()
     p.provincia = request.form.get("provincia", p.provincia).strip()
     p.maneggio = request.form.get("maneggio", p.maneggio).strip()
-
     lat = request.form.get("lat")
     lng = request.form.get("lng")
-    squadra_id = request.form.get("squadra_id")
-
-    if (not lat or not lng) and p.luogo and p.provincia:
-        geo_lat, geo_lng = geocode_location(p.luogo, p.provincia)
-        if geo_lat and geo_lng:
-            lat, lng = geo_lat, geo_lng
-
     p.lat = float(lat) if lat else None
     p.lng = float(lng) if lng else None
+    squadra_id = request.form.get("squadra_id")
     p.squadra_id = int(squadra_id) if squadra_id else None
-
     db.session.commit()
     return redirect(url_for("partecipanti"))
 
@@ -306,7 +281,7 @@ def delete_partecipante(id):
     return redirect(url_for("partecipanti"))
 
 # -------------------
-# AVVIO LOCALE
+# AVVIO (solo locale)
 # -------------------
 if __name__ == "__main__":
     app.run(debug=True)
