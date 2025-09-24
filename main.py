@@ -214,7 +214,7 @@ def dettaglio_gioco(id):
 
     if request.method == "POST":
         squadra_id = int(request.form["squadra_id"])
-        punti = int(request.form["punti"])
+        punti = float(request.form["punti"])
         existing = Punteggio.query.filter_by(gioco_id=gioco.id, squadra_id=squadra_id).first()
         if existing:
             existing.punti = punti
