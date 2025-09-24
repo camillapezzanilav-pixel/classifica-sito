@@ -18,7 +18,7 @@
         <td>
           <form method="post" class="d-flex gap-2">
             <input type="hidden" name="squadra_id" value="{{ squadra.id }}">
-            <input type="number" class="form-control" name="punti" min="0" step="1" value="{{ punteggio.punti if punteggio else '' }}" placeholder="0" required>
+	    <input type="number" class="form-control form-control-sm" name="punti" step="any" min="0" value="{{ punteggio.punti if punteggio else '' }}" placeholder="0.0" required>
             <button class="btn btn-success">💾</button>
           </form>
         </td>

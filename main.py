@@ -64,7 +64,7 @@ class Gioco(db.Model):
 class Punteggio(db.Model):
     __tablename__ = "punteggi"
     id = db.Column(db.Integer, primary_key=True)
-    punti = db.Column(db.Integer, default=0, nullable=False)
+    punti = db.Column(db.Float, default=0, nullable=False)
     gioco_id = db.Column(db.Integer, db.ForeignKey("giochi.id"))
     squadra_id = db.Column(db.Integer, db.ForeignKey("squadre.id"))
 
