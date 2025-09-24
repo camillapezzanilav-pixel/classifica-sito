@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Home – Dove si va{% endblock %}
 {% block content %}
-<h1 class="h3 mb-3">Benvenuti</h1>
+<h1 class="h3 mb-3">Benvenuti al Dove si Va</h1>
 <p class="text-muted">Da qui puoi gestire Giochi, Squadre e Partecipanti. Le classifiche si aggiornano automaticamente.</p>
 
 <div class="row g-4">
@@ -33,7 +33,7 @@
 
   <div class="col-lg-6">
     <div class="card">
-      <div class="card-header bg-white"><strong> 📊 Classifica partecipanti (per partecipanti)</strong></div>
+      <div class="card-header bg-white"><strong> 📊 Classifica partecipanti per maneggio</strong></div>
       <div class="card-body">
         <div class="table-responsive">
           <table class="table align-middle">
@@ -51,39 +51,39 @@
             </tbody>
           </table>
         </div>
-        <small class="text-muted">Conteggio dal campo “maneggio” dei partecipanti.</small>
+        <small class="text-muted"></small>
       </div>
     </div>
   </div>
 
   <div class="col-12">
     <div class="card">
-      <div class="card-header bg-white"><strong>Premiazioni</strong></div>
+      <div class="card-header bg-white"><strong>🏆 Premiazioni</strong></div>
       <div class="card-body row g-3">
         <div class="col-md-6 col-xl-3">
           <div class="p-3 border rounded-4 bg-light h-100">
-            <div class="fw-bold mb-1">Più giovane (F)</div>
+            <div class="fw-bold mb-1">👧 Più giovane (F)</div>
             <div class="h6 mb-0">{{ youngest_f.nome if youngest_f else "—" }}</div>
             <div class="text-muted small">{{ youngest_f.nascita if youngest_f else "" }}</div>
           </div>
         </div>
         <div class="col-md-6 col-xl-3">
           <div class="p-3 border rounded-4 bg-light h-100">
-            <div class="fw-bold mb-1">Più giovane (M)</div>
+            <div class="fw-bold mb-1">👦 Più giovane (M)</div>
             <div class="h6 mb-0">{{ youngest_m.nome if youngest_m else "—" }}</div>
             <div class="text-muted small">{{ youngest_m.nascita if youngest_m else "" }}</div>
           </div>
         </div>
         <div class="col-md-6 col-xl-3">
           <div class="p-3 border rounded-4 bg-light h-100">
-            <div class="fw-bold mb-1">Più vecchio</div>
+            <div class="fw-bold mb-1">👴 Più vecchio</div>
             <div class="h6 mb-0">{{ oldest.nome if oldest else "—" }}</div>
             <div class="text-muted small">{{ oldest.nascita if oldest else "" }}</div>
           </div>
         </div>
         <div class="col-md-6 col-xl-3">
           <div class="p-3 border rounded-4 bg-light h-100">
-            <div class="fw-bold mb-1">Da più lontano</div>
+            <div class="fw-bold mb-1">🧭 Da più lontano</div>
             {% if farthest %}
               <div class="h6 mb-0">{{ farthest[0].nome }}</div>
               <div class="text-muted small">{{ "%.1f" | format(farthest[1]) }} km — {{ farthest[0].luogo or "—" }} ({{ farthest[0].provincia or "?" }})</div>
@@ -95,7 +95,7 @@
         </div>
       </div>
       <div class="card-footer bg-white text-muted small">
-        Distanza calcolata dalla base: {{ base_coords[0] }}, {{ base_coords[1] }} (impostabile con variabili d’ambiente BASE_LAT / BASE_LNG).
+       
       </div>
     </div>
   </div>
