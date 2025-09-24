@@ -5,28 +5,20 @@
 <p class="text-muted">Da qui puoi gestire Giochi, Squadre e Partecipanti. Le classifiche si aggiornano automaticamente.</p>
 
 <div class="row g-4">
-  <!-- Classifica Generale -->
   <div class="col-lg-6">
     <div class="card">
       <div class="card-header bg-white"><strong>📊 Classifica Generale (Squadre)</strong></div>
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover table-striped align-middle">
+          <table class="table align-middle">
             <thead><tr><th>#</th><th>👥 Squadra</th><th>Punti</th></tr></thead>
             <tbody>
             {% for row in classifica_generale %}
               <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ row[0].nome }}</td>
-                <td>
-                  {% if row[1] >= 10 %}
-                    <span class="badge bg-success">{{ "%.2f"|format(row[1]) }}</span>
-                  {% elif row[1] >= 5 %}
-                    <span class="badge bg-warning text-dark">{{ "%.2f"|format(row[1]) }}</span>
-                  {% else %}
-                    <span class="badge bg-danger">{{ "%.2f"|format(row[1]) }}</span>
-                  {% endif %}
-                </td>
+                #<td><strong>{{ row[1] }}</strong></td>
+		<td><strong>{{ "%.2f"|format(row[1]) }}</strong></td>
               </tr>
             {% else %}
               <tr><td colspan="3" class="text-muted fst-italic">Nessun punteggio inserito.</td></tr>
@@ -39,20 +31,19 @@
     </div>
   </div>
 
-  <!-- Classifica Maneggi -->
   <div class="col-lg-6">
     <div class="card">
-      <div class="card-header bg-white"><strong>📊 Classifica partecipanti per maneggio</strong></div>
+      <div class="card-header bg-white"><strong> 📊 Classifica partecipanti per maneggio</strong></div>
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover table-striped align-middle">
+          <table class="table align-middle">
             <thead><tr><th>#</th><th>Maneggio</th><th>🧍 Partecipanti</th></tr></thead>
             <tbody>
             {% for row in classifica_maneggi %}
               <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ row[0] or "—" }}</td>
-                <td><span class="badge bg-info text-dark">{{ row[1] }}</span></td>
+                <td><strong>{{ row[1] }}</strong></td>
               </tr>
             {% else %}
               <tr><td colspan="3" class="text-muted fst-italic">Nessun partecipante inserito.</td></tr>
@@ -60,48 +51,51 @@
             </tbody>
           </table>
         </div>
+        <small class="text-muted"></small>
       </div>
     </div>
   </div>
 
-  <!-- Premiazioni -->
   <div class="col-12">
     <div class="card">
       <div class="card-header bg-white"><strong>🏆 Premiazioni</strong></div>
       <div class="card-body row g-3">
         <div class="col-md-6 col-xl-3">
-          <div class="p-3 border rounded-4 bg-light-subtle h-100">
+          <div class="p-3 border rounded-4 bg-light h-100">
             <div class="fw-bold mb-1">👧 Più giovane (F)</div>
             <div class="h6 mb-0">{{ youngest_f.nome if youngest_f else "—" }}</div>
             <div class="text-muted small">{{ youngest_f.nascita if youngest_f else "" }}</div>
           </div>
         </div>
         <div class="col-md-6 col-xl-3">
-          <div class="p-3 border rounded-4 bg-light-subtle h-100">
+          <div class="p-3 border rounded-4 bg-light h-100">
             <div class="fw-bold mb-1">👦 Più giovane (M)</div>
             <div class="h6 mb-0">{{ youngest_m.nome if youngest_m else "—" }}</div>
             <div class="text-muted small">{{ youngest_m.nascita if youngest_m else "" }}</div>
           </div>
         </div>
         <div class="col-md-6 col-xl-3">
-          <div class="p-3 border rounded-4 bg-light-subtle h-100">
+          <div class="p-3 border rounded-4 bg-light h-100">
             <div class="fw-bold mb-1">👴 Più vecchio</div>
             <div class="h6 mb-0">{{ oldest.nome if oldest else "—" }}</div>
             <div class="text-muted small">{{ oldest.nascita if oldest else "" }}</div>
           </div>
         </div>
         <div class="col-md-6 col-xl-3">
-          <div class="p-3 border rounded-4 bg-light-subtle h-100">
+          <div class="p-3 border rounded-4 bg-light h-100">
             <div class="fw-bold mb-1">🧭 Da più lontano</div>
             {% if farthest %}
               <div class="h6 mb-0">{{ farthest[0].nome }}</div>
               <div class="text-muted small">{{ "%.1f" | format(farthest[1]) }} km — {{ farthest[0].luogo or "—" }} ({{ farthest[0].provincia or "?" }})</div>
             {% else %}
               <div class="h6 mb-0">—</div>
-              <div class="text-muted small">Inserisci luogo e provincia nei partecipanti</div>
+              <div class="text-muted small">Inserisci lat/lng nei partecipanti</div>
             {% endif %}
           </div>
         </div>
+      </div>
+      <div class="card-footer bg-white text-muted small">
+       
       </div>
     </div>
   </div>
