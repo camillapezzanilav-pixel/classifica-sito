@@ -49,6 +49,7 @@ class Gioco(db.Model):
     __tablename__ = "giochi"
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
+    punteggi = db.relationship("Punteggio", backref="gioco", lazy=True)
 
 class Punteggio(db.Model):
     __tablename__ = "punteggi"
@@ -103,6 +104,9 @@ def home():
 # -------------------
 # GIOCHI
 # -------------------
+# -------------------
+# GESTIONE GIOCHI
+# -------------------
 @app.route("/giochi", methods=["GET", "POST"])
 def giochi():
     if request.method == "POST":
@@ -112,9 +116,27 @@ def giochi():
             db.session.commit()
         return redirect(url_for("giochi"))
 
-    giochi = Gioco.query.all()
+    giochi = Gioco.query.order_by(Gioco.nome).all()
     return render_template("giochi.html", giochi=giochi)
 
+@app.route("/giochi/<int:id>/edit", methods=["POST"])
+def edit_gioco(id):
+    gioco = Gioco.query.get_or_404(id)
+    nome = request.form["nome"].strip()
+    if nome:
+        gioco.nome = nome
+        db.session.commit()
+    return redirect(url_for("giochi"))
+
+@app.route("/giochi/<int:id>/delete", methods=["POST"])
+def delete_gioco(id):
+    gioco = Gioco.query.get_or_404(id)
+    # elimina anche i punteggi legati a questo gioco
+    for p in gioco.punteggi:
+        db.session.delete(p)
+    db.session.delete(gioco)
+    db.session.commit()
+    return redirect(url_for("giochi"))
 # -------------------
 # SQUADRE
 # -------------------

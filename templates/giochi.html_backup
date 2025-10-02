@@ -16,14 +16,12 @@
   {% for g in giochi %}
   <li class="list-group-item">
     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
-      <strong>{{ g.nome }}</strong>
+      <a class="text-decoration-none" href="{{ url_for('dettaglio_gioco', id=g.id) }}"><strong>{{ g.nome }}</strong></a>
       <div class="d-flex gap-2">
-        <!-- Modifica -->
         <form method="post" action="{{ url_for('edit_gioco', id=g.id) }}" class="d-flex gap-2">
           <input class="form-control form-control-sm" name="nome" value="{{ g.nome }}" required>
           <button class="btn btn-sm btn-success">💾</button>
         </form>
-        <!-- Eliminazione -->
         <form method="post" action="{{ url_for('delete_gioco', id=g.id) }}" onsubmit="return confirm('Eliminare questo gioco e i suoi punteggi?')">
           <button class="btn btn-sm btn-danger">🗑</button>
         </form>
