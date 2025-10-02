@@ -70,13 +70,21 @@ with app.app_context():
 
 @app.route("/")
 def home():
+    #classifica_generale = (
+    #    db.session.query(Squadra, db.func.sum(Punteggio.punti))
+    #    .outerjoin(Punteggio)
+    #    .group_by(Squadra.id)
+    #    .order_by(db.desc(db.func.sum(Punteggio.punti)))
+    #    .all()
+   # )
     classifica_generale = (
-        db.session.query(Squadra, db.func.sum(Punteggio.punti))
-        .outerjoin(Punteggio)
-        .group_by(Squadra.id)
-        .order_by(db.desc(db.func.sum(Punteggio.punti)))
-        .all()
+    	db.session.query(Squadra, db.func.coalesce(db.func.sum(Punteggio.punti), 0))
+    	.outerjoin(Punteggio)
+    	.group_by(Squadra.id)
+    	.order_by(db.desc(db.func.coalesce(db.func.sum(Punteggio.punti), 0)))
+    	.all()
     )
+
 
     classifica_maneggi = (
         db.session.query(Partecipante.maneggio, db.func.count(Partecipante.id))
@@ -124,8 +132,11 @@ def squadre():
             db.session.add(Squadra(nome=nome))
             db.session.commit()
         return redirect(url_for("squadre"))
-    squadre = Squadra.query.all()
+    #squadre = Squadra.query.all()
+    #return render_template("squadre.html", squadre=squadre)
+    squadre = Squadra.query.order_by(Squadra.nome.asc()).all()
     return render_template("squadre.html", squadre=squadre)
+
 
 
 @app.route("/squadre/<int:id>/delete", methods=["POST"])
