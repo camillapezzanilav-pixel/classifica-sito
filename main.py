@@ -14,6 +14,7 @@ db_url = os.environ.get("DATABASE_URL")
 if not db_url:
     raise RuntimeError("❌ DATABASE_URL non impostata.")
 
+# Fix compatibilità postgres:// → postgresql://
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
@@ -52,16 +53,16 @@ class Gioco(db.Model):
 class Punteggio(db.Model):
     __tablename__ = "punteggi"
     id = db.Column(db.Integer, primary_key=True)
-    punti = db.Column(db.Float, default=0, nullable=False)
+    punti = db.Column(db.Float, default=0, nullable=False)   # decimali
     gioco_id = db.Column(db.Integer, db.ForeignKey("giochi.id"))
     squadra_id = db.Column(db.Integer, db.ForeignKey("squadre.id"))
 
 # -------------------
-# ROUTES
+# ROUTES PRINCIPALI
 # -------------------
 @app.route("/")
 def home():
-    # Classifica generale
+    # Classifica generale (somma punti di tutte le squadre)
     classifica_generale = (
         db.session.query(Squadra, db.func.sum(Punteggio.punti).label("totale"))
         .outerjoin(Punteggio, Squadra.id == Punteggio.squadra_id)
@@ -70,7 +71,7 @@ def home():
         .all()
     )
 
-    # Classifica maneggi
+    # Classifica maneggi (conta partecipanti)
     classifica_maneggi = (
         db.session.query(Partecipante.maneggio, db.func.count(Partecipante.id))
         .group_by(Partecipante.maneggio)
@@ -83,6 +84,7 @@ def home():
     youngest_m = Partecipante.query.filter_by(sesso="M").order_by(Partecipante.nascita.desc()).first()
     oldest = Partecipante.query.order_by(Partecipante.nascita.asc()).first()
 
+    # Più lontano da Ragazzona
     farthest = None
     for p in Partecipante.query.all():
         if p.lat and p.lng:
@@ -104,10 +106,12 @@ def home():
 @app.route("/giochi", methods=["GET", "POST"])
 def giochi():
     if request.method == "POST":
-        nome = request.form["nome"]
-        db.session.add(Gioco(nome=nome))
-        db.session.commit()
+        nome = request.form["nome"].strip()
+        if nome:
+            db.session.add(Gioco(nome=nome))
+            db.session.commit()
         return redirect(url_for("giochi"))
+
     giochi = Gioco.query.all()
     return render_template("giochi.html", giochi=giochi)
 
@@ -117,10 +121,12 @@ def giochi():
 @app.route("/squadre", methods=["GET", "POST"])
 def squadre():
     if request.method == "POST":
-        nome = request.form["nome"]
-        db.session.add(Squadra(nome=nome))
-        db.session.commit()
+        nome = request.form["nome"].strip()
+        if nome:
+            db.session.add(Squadra(nome=nome))
+            db.session.commit()
         return redirect(url_for("squadre"))
+
     squadre = Squadra.query.order_by(Squadra.nome).all()
     return render_template("squadre.html", squadre=squadre)
 
@@ -131,70 +137,19 @@ def dettaglio_squadra(id):
 
     if request.method == "POST":
         for gioco in giochi:
-            if gioco.nome.lower() == "quiz":
-                # Somma 5 risposte
-                vals = [float(request.form.get(f"quiz_{i}", 0)) for i in range(1, 6)]
-                punti = sum(vals)
-            else:
-                punti_str = request.form.get(f"gioco_{gioco.id}")
-                punti = float(punti_str) if punti_str else 0
-
-            existing = Punteggio.query.filter_by(gioco_id=gioco.id, squadra_id=squadra.id).first()
-            if existing:
-                existing.punti = punti
-            else:
-                db.session.add(Punteggio(gioco_id=gioco.id, squadra_id=squadra.id, punti=punti))
-
-        db.session.commit()
-        return redirect(url_for("dettaglio_squadra", id=squadra.id))
-
-    punteggi = {p.gioco_id: p.punti for p in Punteggio.query.filter_by(squadra_id=squadra.id).all()}
-    return render_template("dettaglio_squadra.html", squadra=squadra, giochi=giochi, punteggi=punteggi)
-
-# -------------------
-# PARTECIPANTI
-# -------------------
-@app.route("/partecipanti", methods=["GET", "POST"])
-def partecipanti():
-    if request.method == "POST":
-        nome = request.form["nome"]
-        nascita = request.form["nascita"]
-        sesso = request.form["sesso"]
-        luogo = request.form["luogo"]
-        provincia = request.form["provincia"]
-        maneggio = request.form["maneggio"]
-        squadra_id = request.form.get("squadra_id")
-
-        try:
-            nascita_date = date.fromisoformat(nascita)
-        except:
-            nascita_date = date.today()
-
-        lat, lng = None, None
-        try:
-            location = geolocator.geocode(f"{luogo}, {provincia}, Italia")
-            if location:
-                lat, lng = location.latitude, location.longitude
-        except:
-            pass
-
-        nuovo = Partecipante(nome=nome, nascita=nascita_date, sesso=sesso,
-                             luogo=luogo, provincia=provincia, maneggio=maneggio,
-                             squadra_id=squadra_id, lat=lat, lng=lng)
-        db.session.add(nuovo)
-        db.session.commit()
-        return redirect(url_for("partecipanti"))
-
-    partecipanti = Partecipante.query.all()
-    squadre = Squadra.query.all()
-    return render_template("partecipanti.html", partecipanti=partecipanti, squadre=squadre)
-
-# -------------------
-# AVVIO
-# -------------------
-with app.app_context():
-    db.create_all()
-
-if __name__ == "__main__":
-    app.run(debug=True)
+            punti = 0.0
+            try:
+                if gioco.nome.lower() == "quiz":
+                    # Somma delle 5 domande
+                    vals = []
+                    for i in range(1, 6):
+                        v = request.form.get(f"quiz_{i}")
+                        if v:
+                            vals.append(float(v))
+                    punti = sum(vals)
+                else:
+                    punti_str = request.form.get(f"gioco_{gioco.id}")
+                    if punti_str and punti_str.strip() != "":
+                        punti = float(punti_str)
+            except ValueError:
 
