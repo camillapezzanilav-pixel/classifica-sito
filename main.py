@@ -152,4 +152,70 @@ def dettaglio_squadra(id):
                     if punti_str and punti_str.strip() != "":
                         punti = float(punti_str)
             except ValueError:
+                punti = 0.0  # fallback se input non valido
+
+            # Salvataggio o aggiornamento
+            existing = Punteggio.query.filter_by(gioco_id=gioco.id, squadra_id=squadra.id).first()
+            if existing:
+                existing.punti = punti
+            else:
+                db.session.add(Punteggio(gioco_id=gioco.id, squadra_id=squadra.id, punti=punti))
+
+        db.session.commit()
+        return redirect(url_for("dettaglio_squadra", id=squadra.id))
+
+    # Dizionario dei punteggi della squadra
+    punteggi = {p.gioco_id: p.punti for p in Punteggio.query.filter_by(squadra_id=squadra.id).all()}
+
+    return render_template("dettaglio_squadra.html",
+                           squadra=squadra,
+                           giochi=giochi,
+                           punteggi=punteggi)
+
+# -------------------
+# PARTECIPANTI
+# -------------------
+@app.route("/partecipanti", methods=["GET", "POST"])
+def partecipanti():
+    if request.method == "POST":
+        nome = request.form["nome"]
+        nascita = request.form["nascita"]
+        sesso = request.form["sesso"]
+        luogo = request.form["luogo"]
+        provincia = request.form["provincia"]
+        maneggio = request.form["maneggio"]
+        squadra_id = request.form.get("squadra_id")
+
+        try:
+            nascita_date = date.fromisoformat(nascita)
+        except Exception:
+            nascita_date = date.today()
+
+        lat, lng = None, None
+        try:
+            location = geolocator.geocode(f"{luogo}, {provincia}, Italia")
+            if location:
+                lat, lng = location.latitude, location.longitude
+        except Exception:
+            pass   # ✅ importante per non avere errore di indentazione
+
+        nuovo = Partecipante(nome=nome, nascita=nascita_date, sesso=sesso,
+                             luogo=luogo, provincia=provincia, maneggio=maneggio,
+                             squadra_id=squadra_id, lat=lat, lng=lng)
+        db.session.add(nuovo)
+        db.session.commit()
+        return redirect(url_for("partecipanti"))
+
+    partecipanti = Partecipante.query.all()
+    squadre = Squadra.query.all()
+    return render_template("partecipanti.html", partecipanti=partecipanti, squadre=squadre)
+
+# -------------------
+# AVVIO
+# -------------------
+with app.app_context():
+    db.create_all()
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
