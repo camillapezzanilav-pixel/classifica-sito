@@ -1,41 +1,43 @@
 {% extends "base.html" %}
 {% block title %}Dettaglio Squadra{% endblock %}
-{% block content %}
+{% block content %} 
 <h2 class="mb-4">👥 Squadra: {{ squadra.nome }}</h2>
 
 {% if giochi %}
-<form method="POST">
-  <div class="row g-4">
-    {% for gioco in giochi %}
-      <div class="col-12">
-        <div class="card shadow-sm">
-          <div class="card-header"><strong>🎲 {{ gioco.nome }}</strong></div>
-          <div class="card-body">
-            {% if gioco.nome.lower() == "quiz" %}
-              <div class="row g-2">
-                {% for i in range(1,6) %}
-                  <div class="col-md-2 col-6">
-                    <input type="number" step="any" min="0" class="form-control"
-                           name="quiz_{{ i }}" placeholder="Domanda {{ i }}">
-                  </div>
-                {% endfor %}
+<div class="row g-4">
+  {% for gioco in giochi %}
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header"><strong>🎲 {{ gioco.nome }}</strong></div>
+        <div class="card-body">
+          {% if gioco.nome.lower() == "quiz" %}
+            <form method="post" action="{{ url_for('salva_punteggio', id=squadra.id, gioco_id=gioco.id) }}" class="row g-2">
+              {% for i in range(1,6) %}
+                <div class="col-md-2 col-6">
+                  <input type="number" step="0.1" min="0" class="form-control"
+                         name="quiz_{{ i }}"
+                         placeholder="Domanda {{ i }}">
+                </div>
+              {% endfor %}
+              <div class="col-12 mt-2">
+                <button class="btn btn-sm btn-primary">💾 Salva Quiz</button>
               </div>
-              <small class="text-muted">⚡ Inserisci i punteggi delle 5 domande, il sistema calcola il totale.</small>
-            {% else %}
-              <input type="number" step="any" min="0" class="form-control"
-                     name="gioco_{{ gioco.id }}"
-                     value="{{ punteggi.get(gioco.id, '') }}"
+            </form>
+            <small class="text-muted">⚡ Inserisci i punteggi delle 5 domande, il sistema calcola il totale.</small>
+          {% else %}
+            <form method="post" action="{{ url_for('salva_punteggio', id=squadra.id, gioco_id=gioco.id) }}" class="d-flex gap-2">
+              <input type="number" step="0.1" min="0" class="form-control"
+                     name="punti"
+                     value="{{ punteggi[gioco.id].punti if gioco.id in punteggi else '' }}"
                      placeholder="Punteggio">
-            {% endif %}
-          </div>
+              <button class="btn btn-sm btn-primary">💾 Salva</button>
+            </form>
+          {% endif %}
         </div>
       </div>
-    {% endfor %}
-  </div>
-  <div class="mt-4">
-    <button class="btn btn-success btn-lg">💾 Salva Punteggi</button>
-  </div>
-</form>
+    </div>
+  {% endfor %}
+</div>
 
 <hr>
 <h4 class="mt-4">📊 Punteggi attuali</h4>
@@ -44,13 +46,17 @@
     <li class="list-group-item d-flex justify-content-between align-items-center">
       {{ gioco.nome }}
       <span class="badge bg-primary rounded-pill">
-        {{ "%.2f"|format(punteggi.get(gioco.id, 0)) }}
+        {{ "%.2f"|format(punteggi.get(gioco.id).punti if punteggi.get(gioco.id) else 0) }}
       </span>
     </li>
   {% endfor %}
 </ul>
 {% else %}
-  <div class="alert alert-warning">⚠️ Nessun gioco inserito. Vai nella sezione <a href="{{ url_for('giochi') }}">Giochi</a> e aggiungine almeno uno.</div>
+<div class="alert alert-warning">Nessun gioco disponibile.</div>
 {% endif %}
+
+<div class="mt-4">
+  <a href="{{ url_for('squadre') }}" class="btn btn-secondary">⬅ Torna alle squadre</a>
+</div>
 {% endblock %}
 
