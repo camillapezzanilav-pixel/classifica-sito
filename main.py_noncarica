@@ -70,21 +70,13 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    #classifica_generale = (
-    #    db.session.query(Squadra, db.func.sum(Punteggio.punti))
-    #    .outerjoin(Punteggio)
-    #    .group_by(Squadra.id)
-    #    .order_by(db.desc(db.func.sum(Punteggio.punti)))
-    #    .all()
-   # )
     classifica_generale = (
-    	db.session.query(Squadra, db.func.coalesce(db.func.sum(Punteggio.punti), 0))
-    	.outerjoin(Punteggio)
-    	.group_by(Squadra.id)
-    	.order_by(db.desc(db.func.coalesce(db.func.sum(Punteggio.punti), 0)))
-    	.all()
+        db.session.query(Squadra, db.func.coalesce(db.func.sum(Punteggio.punti), 0))
+        .outerjoin(Punteggio)
+        .group_by(Squadra.id)
+        .order_by(db.desc(db.func.coalesce(db.func.sum(Punteggio.punti), 0)))
+        .all()
     )
-
 
     classifica_maneggi = (
         db.session.query(Partecipante.maneggio, db.func.count(Partecipante.id))
@@ -132,11 +124,8 @@ def squadre():
             db.session.add(Squadra(nome=nome))
             db.session.commit()
         return redirect(url_for("squadre"))
-    #squadre = Squadra.query.all()
-    #return render_template("squadre.html", squadre=squadre)
     squadre = Squadra.query.order_by(Squadra.nome.asc()).all()
     return render_template("squadre.html", squadre=squadre)
-
 
 
 @app.route("/squadre/<int:id>/delete", methods=["POST"])
@@ -263,21 +252,25 @@ def salva_punteggio(id, gioco_id):
         totale = 0.0
         for i in range(1, 6):
             val = request.form.get(f"quiz_{i}")
-            if val:
-                try:
-                    totale += float(val)
-                except ValueError:
-                    pass
+            try:
+                totale += float(val) if val else 0.0
+            except ValueError:
+                pass
         punti = totale
     else:
-        punti = float(request.form["punti"]) if request.form.get("punti") else 0
+        try:
+            punti = float(request.form.get("punti", 0))
+        except ValueError:
+            punti = 0.0
 
+    # sempre aggiorna/crea con valore valido
     existing = Punteggio.query.filter_by(squadra_id=squadra.id, gioco_id=gioco.id).first()
     if existing:
-        existing.punti = punti
+        existing.punti = punti or 0.0
     else:
-        db.session.add(Punteggio(squadra_id=squadra.id, gioco_id=gioco.id, punti=punti))
+        db.session.add(Punteggio(squadra_id=squadra.id, gioco_id=gioco.id, punti=punti or 0.0))
     db.session.commit()
+
     return redirect(url_for("dettaglio_squadra", id=squadra.id))
 
 # -------------------
