@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Squadre{% endblock %}
 {% block content %}
-<h2 class="mb-3">👥 Gestione Squadre</h2>
+<h1 class="h4 mb-3">Gestione Squadre</h1>
 
-<!-- Form inserimento nuova squadra -->
-<form method="POST" class="row g-2 mb-3">
-  <div class="col-md-6">
-    <input type="text" class="form-control" name="nome" placeholder="Nome squadra" required>
+<!-- Form inserimento squadra -->
+<form method="post" class="row g-2 mb-4">
+  <div class="col-sm-8">
+    <input class="form-control" name="nome" placeholder="Nome squadra" required>
   </div>
-  <div class="col-md-2">
-    <button class="btn btn-primary w-100">➕ Aggiungi</button>
+  <div class="col-sm-4 d-grid">
+    <button class="btn btn-primary">➕ Aggiungi</button>
   </div>
 </form>
 
@@ -19,25 +19,30 @@
 </div>
 
 <!-- Lista squadre -->
-<div class="list-group" id="squadreList">
+<ul class="list-group" id="squadreList">
   {% for s in squadre %}
-    <a href="{{ url_for('dettaglio_squadra', id=s.id) }}" class="list-group-item list-group-item-action">
-      {{ s.nome }}
-    </a>
+  <li class="list-group-item d-flex justify-content-between align-items-center">
+    <a href="{{ url_for('dettaglio_squadra', id=s.id) }}" class="text-decoration-none fw-bold">{{ s.nome }}</a>
+    <form method="post" action="{{ url_for('delete_squadra', id=s.id) }}" 
+          onsubmit="return confirm('Vuoi davvero eliminare la squadra {{ s.nome }} e tutti i suoi punteggi?')">
+      <button class="btn btn-sm btn-danger">🗑</button>
+    </form>
+  </li>
   {% else %}
-    <div class="text-muted fst-italic">Nessuna squadra inserita.</div>
+  <li class="list-group-item text-muted fst-italic">Nessuna squadra presente.</li>
   {% endfor %}
-</div>
+</ul>
 
+<!-- Script ricerca -->
 <script>
-  const searchInput = document.getElementById("searchInput");
-  searchInput.addEventListener("keyup", function() {
-    const filter = this.value.toLowerCase();
-    const items = document.querySelectorAll("#squadreList a");
-    items.forEach(item => {
-      item.style.display = item.textContent.toLowerCase().includes(filter) ? "" : "none";
-    });
+document.getElementById("searchInput").addEventListener("keyup", function() {
+  let filter = this.value.toLowerCase();
+  let items = document.querySelectorAll("#squadreList li");
+  items.forEach(item => {
+    let text = item.textContent.toLowerCase();
+    item.style.display = text.includes(filter) ? "" : "none";
   });
+});
 </script>
 {% endblock %}
 

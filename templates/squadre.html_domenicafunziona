@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Squadre{% endblock %}
+{% block content %}
+<h2 class="mb-3">👥 Gestione Squadre</h2>
+
+<!-- Form inserimento nuova squadra -->
+<form method="POST" class="row g-2 mb-3">
+  <div class="col-md-6">
+    <input type="text" class="form-control" name="nome" placeholder="Nome squadra" required>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-primary w-100">➕ Aggiungi</button>
+  </div>
+</form>
+
+<!-- Ricerca squadre -->
+<div class="mb-3">
+  <input id="searchInput" type="text" class="form-control" placeholder="🔎 Cerca squadra...">
+</div>
+
+<!-- Lista squadre -->
+<div class="list-group" id="squadreList">
+  {% for s in squadre %}
+    <a href="{{ url_for('dettaglio_squadra', id=s.id) }}" class="list-group-item list-group-item-action">
+      {{ s.nome }}
+    </a>
+  {% else %}
+    <div class="text-muted fst-italic">Nessuna squadra inserita.</div>
+  {% endfor %}
+</div>
+
+<script>
+  const searchInput = document.getElementById("searchInput");
+  searchInput.addEventListener("keyup", function() {
+    const filter = this.value.toLowerCase();
+    const items = document.querySelectorAll("#squadreList a");
+    items.forEach(item => {
+      item.style.display = item.textContent.toLowerCase().includes(filter) ? "" : "none";
+    });
+  });
+</script>
+{% endblock %}
+
